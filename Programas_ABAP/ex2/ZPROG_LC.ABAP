@@ -19,6 +19,7 @@ TYPES: BEGIN OF ty_kna1,
          ort01 TYPE kna1-ort01,
          regio TYPE kna1-regio,
          land1 TYPE kna1-land1,
+         stras TYPE kna1-stras,
        END OF ty_kna1.
 
 *----------------------------------------------------------------------*
@@ -53,9 +54,14 @@ START-OF-SELECTION.
 
   PERFORM mostra_dados.
 
-
-
 END-OF-SELECTION.
+
+*Chamar xd03(visualizar cliente) clicando no codigo do cliente na tabela.
+AT LINE-SELECTION.
+  SET PARAMETER ID 'KUN' FIELD wa_kna1-kunnr.
+
+  CALL TRANSACTION 'XD03' AND SKIP FIRST SCREEN.
+
 *&---------------------------------------------------------------------*
 *&      Form  SELECAO_DADOS
 *&---------------------------------------------------------------------*
@@ -66,7 +72,7 @@ END-OF-SELECTION.
 *----------------------------------------------------------------------*
 FORM selecao_dados .
 *comando que vai ler o banco de dados:
-  SELECT kunnr name1 ort01 regio land1
+  SELECT kunnr name1 ort01 regio land1 stras
     INTO TABLE ti_kna1
     FROM kna1
     WHERE kunnr IN s_kunnr AND
@@ -89,13 +95,26 @@ ENDFORM.                    " SELECAO_DADOS
 *----------------------------------------------------------------------*
 FORM mostra_dados .
 
+  SORT ti_kna1 BY regio kunnr. " ordena os dados"
+
   LOOP AT ti_kna1 INTO wa_kna1.
 
-    WRITE: / wa_kna1-kunnr, sy-vline,
+    "quebra pagina por regiao "
+    ON CHANGE OF wa_kna1-regio.
+      NEW-PAGE.
+    ENDON.
+
+    WRITE: / wa_kna1-kunnr HOTSPOT , sy-vline,
             wa_kna1-name1, sy-vline,
             wa_kna1-ort01, sy-vline,
             wa_kna1-regio, sy-vline,
-            wa_kna1-land1, sy-vline.
+            wa_kna1-land1, sy-vline,
+            wa_kna1-stras, sy-vline.
+
+    HIDE wa_kna1-kunnr. "guarda o valor"
+
+
+
 
 *contador:
     ADD 1 TO v_quant.
