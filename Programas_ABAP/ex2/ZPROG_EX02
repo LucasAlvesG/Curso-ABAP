@@ -1,0 +1,36 @@
+*&---------------------------------------------------------------------*
+*& Report  ZPROG_EX02
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT zprog_ex02 MESSAGE-ID zcm01.
+
+*tela
+
+PARAMETERS: p_data TYPE d.
+
+DATA: v_lastday TYPE sy-datum.
+
+*inicio programa
+START-OF-SELECTION.
+
+  CALL FUNCTION 'RP_LAST_DAY_OF_MONTHS'
+    EXPORTING
+      day_in            = p_data
+    IMPORTING
+      last_day_of_month = v_lastday
+    EXCEPTIONS
+      day_in_no_date    = 1
+      OTHERS            = 2.
+  IF sy-subrc <> 0.
+    WRITE: / 'Erro na função'.
+  ELSE.
+    MESSAGE i000 WITH 'Ultimo dia do mes é:' v_lastday.
+  ENDIF.
+
+
+
+END-OF-SELECTION.
