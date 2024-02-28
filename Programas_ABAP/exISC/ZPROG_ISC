@@ -1,0 +1,183 @@
+*&---------------------------------------------------------------------*
+*& Report  ZPROG_ISC
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT zprog_isc MESSAGE-ID zcm01.
+
+
+TABLES: bkpf.
+
+TYPES: BEGIN OF ty_bkpf,
+         bukrs TYPE bkpf-bukrs,
+         belnr TYPE bkpf-belnr,
+         gjahr TYPE bkpf-gjahr,
+         blart TYPE bkpf-blart,
+         bldat TYPE bkpf-bldat,
+       END OF ty_bkpf.
+
+DATA: ti_bkpf TYPE STANDARD TABLE OF ty_bkpf WITH HEADER LINE.
+
+DATA: BEGIN OF ti_saida OCCURS 0,
+        bukrs TYPE bkpf-bukrs,
+        sep1  TYPE c VALUE ';',
+
+        belnr TYPE bkpf-belnr,
+        sep2  TYPE c VALUE ';',
+
+        gjahr TYPE bkpf-gjahr,
+        sep3  TYPE c VALUE ';',
+
+        blart TYPE bkpf-blart,
+        sep4  TYPE c VALUE ';',
+
+        bldat TYPE bkpf-bldat,
+      END OF ti_saida.
+
+DATA: v_arq   TYPE string,  "Local Do Arquivo"
+      v_quant TYPE i,     "Quantidade de Registros"
+      v_limit TYPE i.    "limite de exportação"
+
+SELECTION-SCREEN BEGIN OF BLOCK b01 WITH FRAME TITLE text-001.
+
+SELECT-OPTIONS: s_belnr FOR bkpf-belnr.
+
+PARAMETERS: p_bukrs LIKE bkpf-bukrs OBLIGATORY DEFAULT '3000',
+            p_gjahr LIKE bkpf-gjahr OBLIGATORY DEFAULT '2015',
+            p_max   TYPE i OBLIGATORY DEFAULT 1500.
+
+SELECTION-SCREEN END OF BLOCK b01.
+
+
+
+
+
+START-OF-SELECTION.
+
+
+  PERFORM selecao_dados.
+
+  PERFORM processamento.
+
+  PERFORM exporta_dados.
+
+  PERFORM mostra_log.
+
+
+END-OF-SELECTION.
+*&---------------------------------------------------------------------*
+*&      Form  SELECAO_DADOS
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+*  -->  p1        text
+*  <--  p2        text
+*----------------------------------------------------------------------*
+FORM selecao_dados .
+
+  SELECT bukrs belnr gjahr blart bldat
+    INTO TABLE ti_bkpf
+    FROM bkpf
+    WHERE belnr IN s_belnr AND
+          bukrs EQ p_bukrs AND
+          gjahr EQ p_gjahr.
+
+  IF NOT sy-subrc EQ 0.
+    MESSAGE i000 WITH ' (BKPF)'.
+    STOP.
+  ENDIF.
+
+
+
+ENDFORM.                    " SELECAO_DADOS
+*&---------------------------------------------------------------------*
+*&      Form  PROCESSAMENTO
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+*  -->  p1        text
+*  <--  p2        text
+*----------------------------------------------------------------------*
+FORM processamento .
+
+  LOOP AT ti_bkpf.
+
+    MOVE-CORRESPONDING ti_bkpf TO ti_saida.
+
+    APPEND ti_saida.
+
+    ADD 1 TO v_limit.
+
+    IF v_limit >= p_max.
+      EXIT. " Sai do loop se v_quant ultrapassar 5000
+    ENDIF.
+
+  ENDLOOP.
+
+
+ENDFORM.                    " PROCESSAMENTO
+*&---------------------------------------------------------------------*
+*&      Form  EXPORTA_DADOS
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+*  -->  p1        text
+*  <--  p2        text
+*----------------------------------------------------------------------*
+FORM exporta_dados .
+
+  "Local do arquivo"
+  CONCATENATE 'C:\CONTABILIDADE\INTERFACE_' sy-datum '_' sy-uzeit '.csv' INTO v_arq.
+
+
+  IF NOT ti_saida[] IS INITIAL.
+
+    CALL FUNCTION 'GUI_DOWNLOAD'
+      EXPORTING
+        filename = v_arq
+        append   = 'X'
+      TABLES
+        data_tab = ti_saida.
+
+
+    IF sy-subrc NE 0.
+      MESSAGE e006.
+    ELSE.
+      MESSAGE s002.
+    ENDIF.
+  ENDIF.
+
+ENDFORM.                    " EXPORTA_DADOS
+*&---------------------------------------------------------------------*
+*&      Form  MOSTRA_LOG
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+*  -->  p1        text
+*  <--  p2        text
+*----------------------------------------------------------------------*
+FORM mostra_log .
+
+  LOOP AT ti_bkpf.
+
+    WRITE:/ ti_bkpf-bukrs, sy-vline,
+            ti_bkpf-belnr, sy-vline,
+            ti_bkpf-gjahr, sy-vline,
+            ti_bkpf-blart, sy-vline,
+            ti_bkpf-bldat, sy-vline.
+
+    ADD 1 TO v_quant.
+    IF v_quant >= p_max.
+      EXIT. " Sai do loop se v_quant ultrapassar 5000
+    ENDIF.
+
+  ENDLOOP.
+
+  ULINE.
+
+  WRITE: / 'Foram exportado(s): ', v_quant , 'Registro(s)'.
+
+ENDFORM.                    " MOSTRA_LOG
