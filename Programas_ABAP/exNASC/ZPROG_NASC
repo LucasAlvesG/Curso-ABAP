@@ -1,0 +1,53 @@
+*&---------------------------------------------------------------------*
+*& Report  ZPROG_NASC
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT zprog_nasc MESSAGE-ID zcm01.
+
+DATA: v_ndias TYPE i.
+
+
+*tela
+SELECTION-SCREEN BEGIN OF BLOCK b01 WITH FRAME TITLE text-001.
+
+PARAMETERS: p_datan TYPE sy-datum.
+
+
+SELECTION-SCREEN END OF BLOCK b01.
+
+PARAMETERS: p_horas AS CHECKBOX.
+
+START-OF-SELECTION.
+
+  CALL FUNCTION 'ZMF01_CALC_DATA'
+    EXPORTING
+      datai  = p_datan
+      dataf  = sy-datum
+    IMPORTING
+      ndias  = v_ndias
+    EXCEPTIONS
+      edata1 = 1
+      edata2 = 2
+      edata3 = 3
+      OTHERS = 4.
+  case sy-subrc.
+    when 0.
+      IF p_horas = 'X'.
+        DATA(resultado) = |Você viveu: { v_ndias } dias ou { v_ndias * 24 } horas|.
+        MESSAGE i001 with resultado.
+      else.
+        MESSAGE i001 with 'Você viveu: ' v_ndias 'Dias'.
+      ENDIF.
+    when 1.
+      MESSAGE I001 WITH 'Você não digitou a data de nascimento'.
+    when 3.
+      MESSAGE i001 WITH 'Esse data é invalida'.
+    when OTHERS.
+      MESSAGE i001 WITH 'Erro'.
+  ENDCASE.
+
+END-OF-SELECTION.
