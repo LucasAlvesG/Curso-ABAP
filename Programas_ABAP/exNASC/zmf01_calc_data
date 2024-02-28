@@ -1,0 +1,31 @@
+FUNCTION zmf01_calc_data.
+*"----------------------------------------------------------------------
+*"*"Interface local:
+*"  IMPORTING
+*"     REFERENCE(DATAI) TYPE  SY-DATUM
+*"     REFERENCE(DATAF) TYPE  SY-DATUM
+*"  EXPORTING
+*"     REFERENCE(NDIAS) TYPE  I
+*"  EXCEPTIONS
+*"      EDATA1
+*"      EDATA2
+*"      EDATA3
+*"----------------------------------------------------------------------
+
+  IF DATAI IS INITIAL.
+    RAISE EDATA1.
+  ENDIF.
+
+  IF DATAF IS INITIAL.
+    RAISE EDATA2.
+  ENDIF.
+
+  IF  DATAF <= DATAI.
+    RAISE EDATA3.
+  ENDIF.
+
+*CALCULO:
+
+NDIAS = DATAF - DATAI.
+
+ENDFUNCTION.
