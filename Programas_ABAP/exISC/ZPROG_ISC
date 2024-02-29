@@ -68,6 +68,17 @@ START-OF-SELECTION.
 
 
 END-OF-SELECTION.
+*----------------------------------EVENTO, QUANDO LINHA FOR SELECIONADA--------------------------------------------------------------------
+AT LINE-SELECTION.
+  set PARAMETER ID: 'BLN' FIELD ti_bkpf-belnr,
+                    'BUK' FIELD ti_bkpf-bukrs,
+                    'GJR' FIELD ti_bkpf-gjahr.
+
+  CALL TRANSACTION 'FB03' AND SKIP FIRST SCREEN.
+*----------------------------------EVENTO, QUANDO LINHA FOR SELECIONADA--------------------------------------------------------------------
+
+
+
 *&---------------------------------------------------------------------*
 *&      Form  SELECAO_DADOS
 *&---------------------------------------------------------------------*
@@ -163,11 +174,14 @@ FORM mostra_log .
 
   LOOP AT ti_bkpf.
 
-    WRITE:/ ti_bkpf-bukrs, sy-vline,
-            ti_bkpf-belnr, sy-vline,
-            ti_bkpf-gjahr, sy-vline,
+    WRITE:/ ti_bkpf-bukrs HOTSPOT, sy-vline,
+            ti_bkpf-belnr HOTSPOT, sy-vline,
+            ti_bkpf-gjahr HOTSPOT, sy-vline,
             ti_bkpf-blart, sy-vline,
             ti_bkpf-bldat, sy-vline.
+
+   "hide guarda os valores "
+    HIDE: ti_bkpf-bukrs, ti_bkpf-belnr, ti_bkpf-gjahr.
 
     ADD 1 TO v_quant.
     IF v_quant >= p_max.
