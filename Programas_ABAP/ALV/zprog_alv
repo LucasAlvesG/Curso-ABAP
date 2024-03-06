@@ -1,0 +1,76 @@
+
+REPORT zclientes1900_alv.
+INCLUDE zclientes1900_alv_top.
+
+TABLES: kna1.
+
+TYPES: BEGIN OF ty_kna1,
+  kunnr type kna1-kunnr,
+  name1 type kna1-name1,
+  ort01 type kna1-ort01,
+  pstlz type kna1-pstlz,
+  stras type kna1-stras,
+  END OF ty_kna1.
+
+  data: wa_kna1 type ty_kna1,
+        wa_fieldcat type slis_fieldcat_alv.
+
+  data: ti_kna1 type table of ty_kna1,
+        ti_fieldcat type  slis_t_fieldcat_alv.
+
+
+
+SELECT-OPTIONS s_kunnr FOR kna1-kunnr.
+
+START-OF-SELECTION.
+* Open SQL
+  SELECT kunnr
+  name1
+  ort01
+  pstlz
+  stras
+  FROM kna1
+  INTO TABLE ti_kna1
+  WHERE kunnr IN s_kunnr.
+
+
+
+*preencher o fieldcat.
+  wa_fieldcat-col_pos = 2.
+  wa_fieldcat-fieldname = 'KUNNR'.
+  wa_fieldcat-seltext_L = 'Codigo'.
+  wa_fieldcat-outputlen = 10.
+
+  APPEND wa_fieldcat TO ti_fieldcat.
+  wa_fieldcat-col_pos = 1.
+  wa_fieldcat-fieldname =  'NAME1'.
+  wa_fieldcat-seltext_l = 'Nome'.
+  wa_fieldcat-outputlen = 35.
+  APPEND wa_fieldcat TO ti_fieldcat.
+
+
+  wa_fieldcat-col_pos = 5.
+  wa_fieldcat-fieldname = 'ORTO1'.
+  wa_fieldcat-seltext_l = 'Cidade'.
+  wa_fieldcat-outputlen = 35.
+  APPEND wa_fieldcat TO ti_fieldcat.
+
+  wa_fieldcat-col_pos = 3.
+  wa_fieldcat-fieldname = 'pstlz'.
+  wa_fieldcat-seltext_l = 'cep'.
+  wa_fieldcat-outputlen = 10.
+  APPEND wa_fieldcat TO ti_fieldcat.
+
+  wa_fieldcat-col_pos = 4.
+  wa_fieldcat-fieldname =  'stras'.
+  wa_fieldcat-seltext_l = 'endereço'.
+  wa_fieldcat-outputlen = 35.
+  APPEND wa_fieldcat TO ti_fieldcat.
+
+*exibe o alv
+
+  call function 'REUSE_ALV_GRID_DISPLAY'
+  exporting
+  it_fieldcat = ti_fieldcat
+  tables
+  t_outtab = ti_kna1.
