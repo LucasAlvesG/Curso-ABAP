@@ -1,0 +1,69 @@
+*&---------------------------------------------------------------------*
+*& Report  ZPROG_VENDAS_ALV
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT zprog_vendas_alv.
+
+TYPES: BEGIN OF we_saida.
+        INCLUDE STRUCTURE vbak.
+TYPES: END OF we_saida.
+*$*$ Tabelas Internas
+DATA: wt_saida TYPE STANDARD TABLE OF we_saida WITH HEADER LINE.
+
+*Nome do programa
+DATA: wv_repid LIKE sy-repid.
+
+*$*$ Tela de Seleção
+SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE text-001.
+SELECT-OPTIONS: s_vbeln FOR wt_saida-vbeln.
+SELECTION-SCREEN END OF BLOCK b1.
+*$*$ Inicialização
+INITIALIZATION.
+  wv_repid = sy-repid.
+
+START-OF-SELECTION.
+
+  PERFORM z_buscar_dados.
+
+END-OF-SELECTION.
+
+  PERFORM z_list_display.
+
+FORM z_buscar_dados.
+  PERFORM z_sapgui_progress_indicator USING 'Selecionando dados. Aguarde.....'.
+
+  select * into table wt_saida
+  from vbak
+  where vbeln in s_vbeln.
+ENDFORM.
+
+
+FORM z_list_display.
+  PERFORM z_sapgui_progress_indicator USING 'Estruturando a lista. Aguarde.....'.
+  CALL FUNCTION 'REUSE_ALV_LIST_DISPLAY'
+
+  exporting
+  i_callback_program = wv_repid
+  i_structure_name = 'VBAK'
+  i_save = 'A'
+  tables
+  t_outtab = wt_saida
+  exceptions
+  program_error = 1
+  others  = 2.
+*verificar processamento da função
+  if sy-subrc ne 0.
+  MESSAGE ID sy-msgid TYPE SY-msGty NUMBER SY-msgno WITH sy-msgv1 SY-mSgv2 SY-mSgv3 sy-msgv4.
+ENDIF.
+ENDFORM.
+
+FORM z_sapgui_progress_indicator USING value(pv_text).
+CALL FUNCTION 'SAPGUI_PROGRESS_INDICATOR'
+EXPORTING
+*      PERCENTAGE
+text = pv_text.
+ENDFORM.
