@@ -1,0 +1,55 @@
+*&---------------------------------------------------------------------*
+*& Report  ZPROG_CAL
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT zprog_cal MESSAGE-ID zcm01.
+
+DATA: v_result TYPE p DECIMALS 2.
+
+SELECTION-SCREEN BEGIN OF BLOCK bo1 WITH FRAME TITLE text-001.
+
+PARAMETERS: p_valor1 TYPE p DECIMALS 2 OBLIGATORY,
+            p_valor2 TYPE p DECIMALS 2 OBLIGATORY.
+
+SELECTION-SCREEN END OF BLOCK bo1.
+
+SELECTION-SCREEN BEGIN OF BLOCK bo2 WITH FRAME TITLE text-002.
+
+PARAMETERS: p_soma RADIOBUTTON GROUP g1,
+            p_subt RADIOBUTTON GROUP g1,
+            p_mult RADIOBUTTON GROUP g1,
+            p_divi RADIOBUTTON GROUP g1.
+
+SELECTION-SCREEN END OF BLOCK bo2.
+
+START-OF-SELECTION.
+
+  IF p_soma = 'X' .
+    v_result = p_valor1 + p_valor2.
+    WRITE: /'O Resultado é:', v_result.
+  ENDIF.
+
+  IF p_subt = 'X'.
+    v_result = p_valor1 - p_valor2.
+    WRITE: / 'O Resultado é:', v_result.
+  ENDIF.
+
+  IF p_mult = 'X'.
+    v_result = p_valor1 * p_valor2.
+    WRITE: / 'O Resultado é:', v_result.
+  ENDIF.
+  
+  IF p_divi = 'X'.
+    IF p_valor2 is INITIAL.
+    MESSAGE e001 WITH 'Não é possivel dividir por 0'.
+    ELSE.
+    v_result = p_valor1 / p_valor2.
+    WRITE: /'O Resultado é:', v_result.
+  ENDIF.
+  ENDIF.
+
+END-OF-SELECTION.
